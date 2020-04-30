@@ -6,21 +6,30 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 } from 'typeorm';
-import { Field } from 'type-graphql';
+import { Field, ObjectType, ID } from 'type-graphql';
+import { IsEmail } from 'class-validator';
+import { compareSync } from 'bcryptjs';
 
+@ObjectType()
 @Entity('users')
 export class User extends BaseEntity {
-	@Field()
+	@Field(() => ID)
 	@PrimaryGeneratedColumn()
 	id: number;
 
 	@Field()
 	@Column('text', { unique: true })
+	@IsEmail() // 동작하지 않음.
 	email: string;
 
 	@Field()
 	@Column('text')
 	password: string;
+
+	comparePassword = (password: string): boolean => {
+		const valid: boolean = compareSync(password, this.password);
+		return valid;
+	};
 
 	@Field()
 	@CreateDateColumn()

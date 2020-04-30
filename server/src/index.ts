@@ -4,18 +4,21 @@ import { createConnection } from 'typeorm';
 import { buildSchemaSync } from 'type-graphql';
 import express from 'express';
 import { UserResolver } from './api/user/UserResolver';
+import { Context } from './types/api';
 
 (async () => {
 	const app = express();
 
 	app.get('/', (_req, res) => res.send('hello'));
-
+	
 	const schema = buildSchemaSync({
 		resolvers: [UserResolver],
+		validate: true
 	});
 
 	const apolloServer = new ApolloServer({
 		schema,
+		context: ({ req, res }: Context) => ({ req, res }),
 	});
 
 	apolloServer.applyMiddleware({ app });

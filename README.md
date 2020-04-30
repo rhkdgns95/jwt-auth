@@ -17,12 +17,15 @@
   -
   - [x] type-graphql server init. 
   - [x] Resolver - EmailSignUp, Login
-  - [ ] Resolver - EmailSignIn, JWT
-
+  - [x] Resolver - EmailSignIn, JWT
+  - [ ] Resolver - GetMyProfile
 - client
   - [ ]
   - [ ] 
 
+- quest(해야할 것들)
+  - [ ] Random값의 tokenVersion 기능.
+  - [ ] refreshToken을 갖는 cookie의 기간 입력.
 ---
 ### 3. Install.
 - server  
@@ -41,6 +44,11 @@ yarn upgrade graphql@14.1.1
 yarn add bcryptjs
 yarn add -D @types/bcryptjs
 yarn add class-validator
+yarn add jsonwebtoken
+yarn add -D @types/jsonwebtoken
+yarn add dotenv
+yarn add -D @types/dotenv
+
 ```
 
 - client
@@ -49,6 +57,7 @@ yarn add class-validator
 ```
 
 ---
+
 ### 4. Example.
 - server
 <details>
@@ -120,6 +129,7 @@ async emailSignUp(
 
 </p>
 </details>
+
 - client
 ---
 ### 5. Study.

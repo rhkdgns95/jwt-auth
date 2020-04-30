@@ -1,8 +1,10 @@
-import { Resolver, Query, Mutation, Arg } from 'type-graphql';
+import { Resolver, Query, Mutation, Arg, Ctx } from 'type-graphql';
 import { User } from '../../entity/User';
 import { hashSync } from 'bcryptjs';
 import { EmailSignUpResponse } from './EmailSignUpResponse';
 import { EmailSignInResponse } from './EmailSignInResponse';
+import { createAccessToken, createRefreshToken } from '../../auth';
+import { Context } from '../../types/api';
 
 @Resolver(User)
 export class UserResolver {
@@ -23,7 +25,8 @@ export class UserResolver {
 	@Mutation(() => EmailSignInResponse)
 	async EmailSignIn(
 		@Arg('email') email: string,
-		@Arg('password') password: string
+		@Arg('password') password: string,
+		@Ctx() { res }: Context
 	): Promise<EmailSignInResponse> {
 		try {
 			const user: User | undefined = await User.findOne({
@@ -33,11 +36,15 @@ export class UserResolver {
 			});
 			if (user) {
 				const isValidPassword: boolean = user.comparePassword(password);
-				if (isValidPassword) {
-					return {
+				if (isValidPassword) {	
+				// Login Success
+					const refreshToken = createRefreshToken(user);
+					const accessToken = createAccessToken(user);
+					res.cookie('x-jwt', refreshToken);
+					return {	
 						ok: true,
 						error: undefined,
-						token: 'coming soon',
+						token: accessToken,
 					};
 				} else {
 					return {

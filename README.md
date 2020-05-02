@@ -22,8 +22,8 @@
 - client
   - [x] Init react app.
   - [x] @graphql-codegen.
-  - [ ] Routes - Login, Register, About.
-
+  - [x] Routes - Login, Register, About, accessToken.
+  - [ ] Keep accessToken.
 
 - quest(해야할 것들)
   - [ ] Random값의 tokenVersion 기능.
@@ -53,6 +53,8 @@ yarn add dotenv
 yarn add -D @types/dotenv
 yarn add cookie-parser
 yarn add -D @types/cookie-parser
+yarn add cors
+yarn add -D @types/cors
 ```
 
 - client
@@ -319,6 +321,36 @@ yarn add -D @types/react-router-dom
   - @IsEmail()과 같이 이메일인지 확인하는 정규식 판단여부를 동작시키는 방법을 찾아야 됨.
   - Context를 가져오기 위해서는 ApolloServer에서 context를 반환해주는 메소드를 생성해주도록 해야함.
 - client
+  
+- 전체
+  - Client의 Cookie 요청
+    ```ts
+    // apollo.ts
+    const client = new ApolloClient({
+      uri: '.../graphql',
+      credentials: 'include',
+    });
+    ```
+  - Server의 Cookie 응답
+    ```ts
+    // index.ts
+    import cors from 'cors';
+    import express from 'express';
+    import { ApolloServer } from 'apollo-server-express';
+
+    const app = express();
+    app.use(cors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    }))
+    const apolloServer = new ApolloServer({
+      schema: '',
+      context: ({ req, res }: Context) => ({req, res }),
+    });
+
+    apolloServer.applyMiddleware({ app, cors: false });
+    app.listen(4000, () => console.log('express server started'));
+    ```
 
 ---
 ### Cmd.

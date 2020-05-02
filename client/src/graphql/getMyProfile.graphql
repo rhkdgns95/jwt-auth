@@ -1,0 +1,9 @@
+query GetMyProfile {
+  getMyProfile {
+    ok
+    error
+    user {
+      ...ItemUser    
+    }
+  }
+}

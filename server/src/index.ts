@@ -11,10 +11,16 @@ import { verify } from 'jsonwebtoken';
 import { createRefreshToken, createAccessToken } from './auth';
 import { User } from './entity/User';
 import { sendRefreshToken } from './sendRefreshToken';
+import cors from 'cors';
 
 (async () => {
 	const app = express();
-
+	app.use(
+		cors({
+			origin: 'http://localhost:3000',
+			credentials: true,
+		})
+	);
 	app.get('/', (_req, res) => res.send('hello'));
 	// refreshToken을 새로 발급받기 (진행해야함).
 	app.use('/refresh_token', cookieParser());
@@ -88,7 +94,7 @@ import { sendRefreshToken } from './sendRefreshToken';
 		context: ({ req, res, payload }: Context) => ({ req, res, payload }),
 	});
 
-	apolloServer.applyMiddleware({ app });
+	apolloServer.applyMiddleware({ app, cors: false });
 
 	createConnection()
 		.then(async () => {

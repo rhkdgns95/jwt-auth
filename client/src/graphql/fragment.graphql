@@ -1,0 +1,7 @@
+fragment ItemUser on User {
+  id
+  email
+  tokenVersion
+  createdAt
+  updatedAt
+}

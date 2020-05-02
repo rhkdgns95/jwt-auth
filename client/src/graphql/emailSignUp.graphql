@@ -1,0 +1,6 @@
+mutation EmailSignUp($email: String! $password: String!) {
+  emailSignUp(email: $email password: $password) {
+    ok
+    error
+  }
+}

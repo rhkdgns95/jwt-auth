@@ -23,8 +23,9 @@
   - [x] Init react app.
   - [x] @graphql-codegen.
   - [x] Routes - Login, Register, About, accessToken.
-  - [ ] Keep accessToken.
-
+  - [x] Keep Login - accessToken/refreshToken.
+  - [ ] LoggedIn/OutRoutes Part1 Login.
+  - [ ] LoggedIn/OutRoutes Part2 Logout.
 - quest(해야할 것들)
   - [ ] Random값의 tokenVersion 기능.
   - [ ] refreshToken을 갖는 cookie의 기간 입력.
@@ -311,9 +312,45 @@ yarn add -D @types/react-router-dom
   $ yarn codegen 
   ``` 
   </p>
-  
   </details>
 
+  <details>
+  <summary>App Continuously-Login</summary>
+  <p>
+  
+  ```ts
+  // index.tsx
+
+  const App = () => {
+    const [fetchLoading, setFetchLoading] = useState<boolean>(true);
+    const [isLoggedIn, setIsLoggedIn]  = useState<boolean>(false);
+
+    useEffect(() => {
+      fetch('http://localhost:4000/refresh_token', {
+        method: 'POST',
+        credentials: 'include',
+      }).then(async x => {
+        const { ok, accessToken } = await x.json();
+        if(ok && accessToken) { // success login,
+          setIsLoggedIn(true);
+          setAccessToken(accessToken);
+        } else {
+          setIsLoggedIn(false);
+          setAccessToken('');
+        }
+        setFetchLoading(false);        
+      })
+    }, []);
+
+    if(fetchLoading) {
+      return <div>loading...</div>;
+    }
+
+    return <>{ isLoggedIn ? 'Hello' : 'Please Login' }</>;
+  }
+  ```
+  </p>
+  </details>
 ---
 ### 5. Study.
 - server
@@ -351,7 +388,7 @@ yarn add -D @types/react-router-dom
     apolloServer.applyMiddleware({ app, cors: false });
     app.listen(4000, () => console.log('express server started'));
     ```
-
+    
 ---
 ### Cmd.
 - server

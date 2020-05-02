@@ -24,7 +24,7 @@ import cors from 'cors';
 	app.get('/', (_req, res) => res.send('hello'));
 	// refreshToken을 새로 발급받기 (진행해야함).
 	app.use('/refresh_token', cookieParser());
-	app.get('/refresh_token', async (req, res) => {
+	app.post('/refresh_token', async (req, res) => {
 		// refreshToken이 존재해야함.
 		console.log('res.cookie: ', req.cookies.jid);
 		const token: string | undefined = req.cookies.jid;

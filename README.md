@@ -18,7 +18,8 @@
   - [x] type-graphql server init. 
   - [x] Resolver - EmailSignUp, Login
   - [x] Resolver - EmailSignIn, JWT
-  - [ ] Resolver - GetMyProfile
+  - [x] Resolver - GetMyProfile RevokeRefreshTokensForUser, cookie-parser, update refresh-token
+
 - client
   - [ ]
   - [ ] 
@@ -26,6 +27,7 @@
 - quest(해야할 것들)
   - [ ] Random값의 tokenVersion 기능.
   - [ ] refreshToken을 갖는 cookie의 기간 입력.
+  - [ ] refreshToken을 새로 발급받으면, 기존의 refreshToken은 파기하도록 할 것.
 ---
 ### 3. Install.
 - server  
@@ -48,7 +50,8 @@ yarn add jsonwebtoken
 yarn add -D @types/jsonwebtoken
 yarn add dotenv
 yarn add -D @types/dotenv
-
+yarn add cookie-parser
+yarn add -D @types/cookie-parser
 ```
 
 - client
@@ -84,9 +87,9 @@ class UserResolver {
 
 <details>
 <summary>type-graphql mutation</summary>
+<p>
 
 ```ts
-
 /**
  *  다른 api 리졸버에서 참조하기 위해서 @ObjectType를 @Entity()에서는 꼭 사용하도록 해야함.
  */
@@ -124,13 +127,112 @@ async emailSignUp(
 }
 
 ```
+</p>
+</details>
 
+<details>
+<summary>cookie parser</summary>
 <p>
 
+```ts
+import cookieParser from 'cookie-parser';
+import express from 'express';
+
+const app = express();
+// '/test'경로에만 cookieParser를 적용하여, 다른 라우터에 요청시 필요없는 오버헤드를 줄일 수 있음.
+app.use('/test', cookieParser());
+app.get('/test', (req, res) => {
+  console.log('cookies: ', req.cookies.jid);
+});
+
+```
+</p>
+</details>
+
+<details>
+<summary>/refresh_token</summary>
+<p>
+
+```ts
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import { createRefreshToken } from './createRefreshToken';
+import { createAccessToken } from './createAccessToken';
+
+/**
+ *  refreshToken의 발급조건:
+ *  1. cookie에 refreshToken값이 존재해야함.
+ *  2. refreshToken의 만료기간.
+ *  3. payload에 userId가 존재 + user의 id값과 동일한 user가 있어야 함.
+ *  4. payload에 tokenVersion이 user의 tokenVersion과 동일해야 함.
+ * 
+ */
+
+const app = express();
+
+// refresh_token경로에서만 cookieParser적용(다른 URL의 요청과는 별개로 오버헤드가 발생하지 않도록 할 것)
+app.use('/refresh_token', cookieParser());  
+app.get('/refresh_token', async (_req, res) => {
+  const token: string | undefined = res.cookies.jid;
+  if(token) {
+    try {
+      const payload = verify(token, process.env.JWT_REFRESH_SECRET);
+
+      // payloa의 tokenVersion과 userId가 0인경우가 있으므로 in을 통해 올바른 토큰타입 확인.
+      if('userId' in payload && 
+      'tokenVersion' in payload) {
+        const user: User | undefined = await User.findOne({ id: payload.userId });
+        if(user && (payload.tokenVersion === user.tokenVersion)) {
+          // ok
+          const refreshToken = createRefreshToken(user);
+          const accessToken = createAccessToken(user);
+
+          // refreshToken을 기존의 cookie에 덮어씌우기
+          res.cookie('jid', refreshToken,
+            { httpOnly: true }
+          );
+          return res.send({
+            ok: true,
+            error: undefined,
+            accessToken,
+          });
+        } else {
+          return res.send({
+            ok: false,
+            error: 'Not found user Or Wrong tokenVersion',
+            accessToken: undefined,
+          });
+        }
+        
+      } else { // token 정책이 맞지 않은경우,
+        return res.send({
+          ok: false,
+          error: 'Wrong token',
+          accessToken: undefined
+        });
+      }
+    } catch(error) {
+      return res.send({ 
+        ok: false, 
+        error: error.message, 
+        accessToken: undefined,
+      });
+    }
+  } else {
+    return res.send({ 
+      ok: false, 
+      error: 'No authenticated', 
+      accessToken: undefined,
+    });
+  }
+})
+
+```
 </p>
 </details>
 
 - client
+
 ---
 ### 5. Study.
 - server

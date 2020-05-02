@@ -1,10 +1,21 @@
-import { Resolver, Query, Mutation, Arg, Ctx } from 'type-graphql';
+import {
+	Resolver,
+	Query,
+	Mutation,
+	Arg,
+	Ctx,
+	UseMiddleware,
+} from 'type-graphql';
 import { User } from '../../entity/User';
 import { hashSync } from 'bcryptjs';
-import { EmailSignUpResponse } from './EmailSignUpResponse';
-import { EmailSignInResponse } from './EmailSignInResponse';
+import { EmailSignUpResponse } from './interface/EmailSignUpResponse';
+import { EmailSignInResponse } from './interface/EmailSignInResponse';
 import { createAccessToken, createRefreshToken } from '../../auth';
-import { Context } from '../../types/api';
+import { Context, Payload } from '../../types/api';
+import { GetMyProfileResponse } from './interface/GetMyProfileResponse';
+import { privateResolver } from '../../middlewares/privateResolver';
+import { RevokeRefreshTokenForUsersResponse } from './interface/RevokeRefreshTokensForUserResponse';
+import { getConnection } from 'typeorm';
 
 @Resolver(User)
 export class UserResolver {
@@ -12,6 +23,41 @@ export class UserResolver {
 	async sayHello() {
 		return 'hi';
 	}
+
+	@Query(() => GetMyProfileResponse)
+	@UseMiddleware(privateResolver)
+	async getMyProfile(
+		@Ctx() { payload }: Context
+	): Promise<GetMyProfileResponse> {
+		try {
+			const userId = payload!.userId;
+			const user: User | undefined = await User.findOne({
+				where: {
+					id: userId,
+				},
+			});
+			if (user) {
+				return {
+					ok: true,
+					error: undefined,
+					user,
+				};
+			} else {
+				return {
+					ok: false,
+					error: 'Not found user',
+					user: undefined,
+				};
+			}
+		} catch (error) {
+			return {
+				ok: false,
+				error: error.message,
+				user: undefined,
+			};
+		}
+	}
+
 	@Query(() => [User])
 	async users(): Promise<Array<User>> {
 		try {
@@ -23,12 +69,16 @@ export class UserResolver {
 		}
 	}
 	@Mutation(() => EmailSignInResponse)
-	async EmailSignIn(
+	async emailSignIn(
 		@Arg('email') email: string,
 		@Arg('password') password: string,
 		@Ctx() { res }: Context
 	): Promise<EmailSignInResponse> {
 		try {
+			const payload: Payload = {userId: 3, tokenVersion: 0};
+			if(typeof payload.userId !== undefined) {
+				
+			}
 			const user: User | undefined = await User.findOne({
 				where: {
 					email,
@@ -36,12 +86,12 @@ export class UserResolver {
 			});
 			if (user) {
 				const isValidPassword: boolean = user.comparePassword(password);
-				if (isValidPassword) {	
-				// Login Success
+				if (isValidPassword) {
+					// Login Success
 					const refreshToken = createRefreshToken(user);
 					const accessToken = createAccessToken(user);
-					res.cookie('x-jwt', refreshToken);
-					return {	
+					res.cookie('jid', refreshToken);
+					return {
 						ok: true,
 						error: undefined,
 						token: accessToken,
@@ -91,6 +141,31 @@ export class UserResolver {
 				ok: false,
 				error: error.message,
 				user: undefined,
+			};
+		}
+	}
+
+	@Mutation(() => RevokeRefreshTokenForUsersResponse)
+	@UseMiddleware(privateResolver)
+	async revokeRefreshTokensForUser(
+		@Ctx() { payload }: Context
+	): Promise<RevokeRefreshTokenForUsersResponse> {
+		try {
+			await getConnection().getRepository(User).increment(
+				{
+					id: payload.userId,
+				},
+				'tokenVersion',
+				1
+			);
+			return {
+				ok: true,
+				error: undefined,
+			};
+		} catch (error) {
+			return {
+				ok: false,
+				error: error.message,
 			};
 		}
 	}

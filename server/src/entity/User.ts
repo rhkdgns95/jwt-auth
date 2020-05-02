@@ -26,6 +26,10 @@ export class User extends BaseEntity {
 	@Column('text')
 	password: string;
 
+	@Field()
+	@Column('int', { default: 0 })
+	tokenVersion: number;
+
 	comparePassword = (password: string): boolean => {
 		const valid: boolean = compareSync(password, this.password);
 		return valid;

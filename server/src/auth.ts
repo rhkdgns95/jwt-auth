@@ -13,14 +13,15 @@ export const createAccessToken = (user: User): string => {
 };
 
 export const createRefreshToken = (user: User) => {
-  const refreshToken: string = sign(
+	const refreshToken: string = sign(
 		{
 			userId: user.id,
+			tokenVersion: user.tokenVersion,
 		},
 		process.env.JWT_REFRESH_SECRET || '',
 		{
 			expiresIn: '1d',
 		}
-  );
-  return refreshToken;
+	);
+	return refreshToken;
 };

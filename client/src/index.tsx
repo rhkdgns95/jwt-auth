@@ -1,24 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import ApolloClient, { Operation } from "apollo-boost";
 import { ApolloProvider } from "@apollo/react-hooks";
-import { getAccessToken } from "./accessToken";
-
-const client = new ApolloClient({
-  uri: "http://localhost:4000/graphql",
-  credentials: "include",
-  request: (operation: Operation) => {
-    const accessToken = getAccessToken();
-    if (accessToken) {
-      operation.setContext({
-        headers: {
-          "X-JID": `bearer ${accessToken}`,
-        },
-      });
-    }
-  },
-});
+import client from "./apollo";
 
 ReactDOM.render(
   <ApolloProvider client={client}>

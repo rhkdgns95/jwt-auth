@@ -24,8 +24,8 @@
   - [x] @graphql-codegen.
   - [x] Routes - Login, Register, About, accessToken.
   - [x] Keep Login - accessToken/refreshToken.
-  - [ ] LoggedIn/OutRoutes Part1 Login.
-  - [ ] LoggedIn/OutRoutes Part2 Logout.
+  - [x] apollo-link-refresh-token.
+  - [ ] login/out auto rendering.
 - quest(해야할 것들)
   - [ ] Random값의 tokenVersion 기능.
   - [ ] refreshToken을 갖는 cookie의 기간 입력.
@@ -69,6 +69,9 @@ yarn add -D @graphql-codegen/cli
 npx graphql-codegen init
 yarn add react-router-dom
 yarn add -D @types/react-router-dom
+yarn add apollo-link-token-refresh
+yarn add jwt-decode
+yarn add -D @types/jwt-decode
 ```
 
 ---
@@ -351,6 +354,15 @@ yarn add -D @types/react-router-dom
   ```
   </p>
   </details>
+
+  <details>
+  <summary>apollo-link-token-refresh</summary>
+  <p>
+  ```ts
+
+  ```
+  </p>
+  </details>
 ---
 ### 5. Study.
 - server
@@ -405,6 +417,7 @@ typeorm init --name ./ --database postgres # 새 typeorm설정이 생성됨(tsco
 ```
 ---
 ### Etc.
-
+- [apollo-migration-boost](https://www.apollographql.com/docs/react/migrating/boost-migration/#gatsby-focus-wrapper)
+- [apollo-link-token-refresh](https://github.com/newsiberian/apollo-link-token-refresh)
 
 ---

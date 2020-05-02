@@ -12,6 +12,7 @@ interface IProps extends RouteComponentProps {}
 
 const Home: React.FC<IProps> = () => {
   const { data, loading } = useGetMyProfileQuery({
+    fetchPolicy: 'network-only',
     onCompleted: (data) => {
       console.log("GetMyProfile onCompleted: ", data);
     },
@@ -25,7 +26,7 @@ const Home: React.FC<IProps> = () => {
 
   return (
     <>
-      {user ? <LoggedInHome /> : <LoggedOutHome />}
+      {user ? <LoggedInHome id={user.id} email={user.email}/> : <LoggedOutHome />}
       <UserList />
     </>
   );
@@ -50,7 +51,11 @@ const UserList = () => {
     </div>
   );
 };
-const LoggedInHome = () => <h3>Hello User!</h3>;
+interface ILoggedInHomeProps {
+  id: string;
+  email: string;
+}
+const LoggedInHome: React.FC<ILoggedInHomeProps> = ({ email, id }) => <h3>Hello, {email}({id})</h3>;
 const LoggedOutHome = () => {
   const formEmail = useInput();
   const formPassword = useInput();

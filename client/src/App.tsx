@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSayHelloQuery, useGetMyProfileQuery } from "./generated/graphql";
+import { useSayHelloQuery } from "./generated/graphql";
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import Register from "./routes/Register";
 import Navbar from "./components/Navbar";

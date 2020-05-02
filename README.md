@@ -14,15 +14,15 @@
 ---
 ### 2. Todo.
 - server
-  -
   - [x] type-graphql server init. 
   - [x] Resolver - EmailSignUp, Login
   - [x] Resolver - EmailSignIn, JWT
   - [x] Resolver - GetMyProfile RevokeRefreshTokensForUser, cookie-parser, update refresh-token
 
 - client
-  - [ ]
+  - [x] Init react app.
   - [ ] 
+
 
 - quest(해야할 것들)
   - [ ] Random값의 tokenVersion 기능.
@@ -56,6 +56,9 @@ yarn add -D @types/cookie-parser
 
 - client
 ```bash
+yarn add react react-dom 
+yarn add parcel-bundler
+yarn add -D @types/react @types/react-dom typescript
 
 ```
 
@@ -232,6 +235,7 @@ app.get('/refresh_token', async (_req, res) => {
 </details>
 
 - client
+
 
 ---
 ### 5. Study.

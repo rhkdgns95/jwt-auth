@@ -11,11 +11,12 @@ import { hashSync } from 'bcryptjs';
 import { EmailSignUpResponse } from './interface/EmailSignUpResponse';
 import { EmailSignInResponse } from './interface/EmailSignInResponse';
 import { createAccessToken, createRefreshToken } from '../../auth';
-import { Context, Payload } from '../../types/api';
+import { Context } from '../../types/api';
 import { GetMyProfileResponse } from './interface/GetMyProfileResponse';
 import { privateResolver } from '../../middlewares/privateResolver';
 import { RevokeRefreshTokenForUsersResponse } from './interface/RevokeRefreshTokensForUserResponse';
 import { getConnection } from 'typeorm';
+import { sendRefreshToken } from '../../sendRefreshToken';
 
 @Resolver(User)
 export class UserResolver {
@@ -68,6 +69,7 @@ export class UserResolver {
 			return [];
 		}
 	}
+
 	@Mutation(() => EmailSignInResponse)
 	async emailSignIn(
 		@Arg('email') email: string,
@@ -75,10 +77,6 @@ export class UserResolver {
 		@Ctx() { res }: Context
 	): Promise<EmailSignInResponse> {
 		try {
-			const payload: Payload = {userId: 3, tokenVersion: 0};
-			if(typeof payload.userId !== undefined) {
-				
-			}
 			const user: User | undefined = await User.findOne({
 				where: {
 					email,
@@ -95,12 +93,14 @@ export class UserResolver {
 						ok: true,
 						error: undefined,
 						token: accessToken,
+						user,
 					};
 				} else {
 					return {
 						ok: false,
 						error: 'Wrong password',
 						token: undefined,
+						user: undefined,
 					};
 				}
 			} else {
@@ -108,6 +108,7 @@ export class UserResolver {
 					ok: false,
 					error: 'Not found email',
 					token: undefined,
+					user: undefined,
 				};
 			}
 		} catch (error) {
@@ -115,6 +116,7 @@ export class UserResolver {
 				ok: false,
 				error: error.message,
 				token: undefined,
+				user: undefined,
 			};
 		}
 	}
@@ -168,5 +170,11 @@ export class UserResolver {
 				error: error.message,
 			};
 		}
+	}
+
+	@Mutation(() => Boolean) 
+	async logout(@Ctx() {res}: Context): Promise<boolean> {
+		sendRefreshToken(res, '');
+		return true;
 	}
 }

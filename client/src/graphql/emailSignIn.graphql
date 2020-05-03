@@ -3,5 +3,8 @@ mutation EmailSignIn($email:String! $password: String!) {
     ok
     error
     token
+    user {
+      ...ItemUser
+    }
   }
 }

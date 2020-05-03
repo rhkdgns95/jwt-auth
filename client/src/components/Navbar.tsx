@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useLogoutMutation } from "../generated/graphql";
+import { setAccessToken } from "../accessToken";
 interface IProps {
   isLoggedIn: boolean;
 }
@@ -34,6 +36,7 @@ const loggedOutNavs: Array<INavigation> = [
 ];
 
 const Navbar: React.FC<IProps> = ({ isLoggedIn }) => {
+  const [logout, { client }] = useLogoutMutation();
   return (
     <ul>
       {isLoggedIn ? (
@@ -43,6 +46,13 @@ const Navbar: React.FC<IProps> = ({ isLoggedIn }) => {
               <Link to={navItem.path}>{navItem.name}</Link>
             </li>
           ))}
+          <li>
+            <button onClick={async () => {
+              await logout();
+              setAccessToken('');
+              client?.resetStore();
+            }}>logout</button>
+          </li>
         </>
       ) : (
         <>

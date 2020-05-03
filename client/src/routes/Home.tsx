@@ -3,6 +3,8 @@ import {
   useGetMyProfileQuery,
   useUsersQuery,
   useEmailSignInMutation,
+  GetMyProfileDocument,
+  GetMyProfileQuery,
 } from "../generated/graphql";
 import { RouteComponentProps } from "react-router-dom";
 import { useInput } from "../hooks/useInput";
@@ -12,9 +14,12 @@ interface IProps extends RouteComponentProps {}
 
 const Home: React.FC<IProps> = () => {
   const { data, loading } = useGetMyProfileQuery({
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
     onCompleted: (data) => {
       console.log("GetMyProfile onCompleted: ", data);
+    },
+    onError: (data) => {
+      console.log("GetMyProfile onError: ", data);
     },
   });
 
@@ -26,7 +31,11 @@ const Home: React.FC<IProps> = () => {
 
   return (
     <>
-      {user ? <LoggedInHome id={user.id} email={user.email}/> : <LoggedOutHome />}
+      {user ? (
+        <LoggedInHome id={user.id} email={user.email} />
+      ) : (
+        <LoggedOutHome />
+      )}
       <UserList />
     </>
   );
@@ -55,7 +64,11 @@ interface ILoggedInHomeProps {
   id: string;
   email: string;
 }
-const LoggedInHome: React.FC<ILoggedInHomeProps> = ({ email, id }) => <h3>Hello, {email}({id})</h3>;
+const LoggedInHome: React.FC<ILoggedInHomeProps> = ({ email, id }) => (
+  <h3>
+    Hello, {email}({id})
+  </h3>
+);
 const LoggedOutHome = () => {
   const formEmail = useInput();
   const formPassword = useInput();
@@ -67,6 +80,29 @@ const LoggedOutHome = () => {
       if (ok && token) {
         console.log("accessToken ok");
         setAccessToken(token);
+      }
+    },
+    update: (store, { data }) => {
+      if (!data) {
+        return null;
+      }
+      if (data.emailSignIn.user) {
+        store.writeQuery<GetMyProfileQuery>({
+          query: GetMyProfileDocument,
+          data: {
+            __typename: "Query",
+            getMyProfile: {
+              __typename: "GetMyProfileResponse",
+              ok: true,
+              error: '',
+              user: data.emailSignIn.user,
+            },
+          },
+        });
+        console.log("loggedIn: ", data.emailSignIn.user);
+        // store.writeData({
+
+        // })
       }
     },
   });

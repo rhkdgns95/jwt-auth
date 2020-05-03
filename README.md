@@ -18,6 +18,7 @@
   - [x] Resolver - EmailSignUp, Login
   - [x] Resolver - EmailSignIn, JWT
   - [x] Resolver - GetMyProfile RevokeRefreshTokensForUser, cookie-parser, update refresh-token
+  - [x] Resolver - Logout(cookie reset)
 
 - client
   - [x] Init react app.
@@ -25,7 +26,7 @@
   - [x] Routes - Login, Register, About, accessToken.
   - [x] Keep Login - accessToken/refreshToken.
   - [x] apollo-link-refresh-token.
-  - [ ] login/out auto rendering.
+  - [x] login/out auto rendering.
 - quest(해야할 것들)
   - [ ] Random값의 tokenVersion 기능.
   - [ ] refreshToken을 갖는 cookie의 기간 입력.
@@ -246,6 +247,20 @@ yarn add -D @types/jwt-decode
   </p>
   </details>
 
+  <details>
+  <summary>Resolver - Logout</summary>
+  <p>
+
+  ```ts
+  @Mutation(() => Boolean) 
+  async logout(@Ctx() { res }: Context): Promise<boolean> {
+    sendRefreshToken(res, '');
+    return true;  
+  }
+  ```
+  </p>
+  </details>
+
 - client
   <details>
   <summary>ApolloProvider</summary>
@@ -356,8 +371,68 @@ yarn add -D @types/jwt-decode
   </details>
 
   <details>
+  <summary>mutation update</summary>
+  <p>
+
+  ```ts
+  // GetMyProfile을 로그인 후에 아폴로 캐시에 다시 데이터를 업데이트 하기.
+  // 로그인된 화면으로 렌더링이 됨.
+  const [emailSignIn] = useEmailSignInMutation({
+    variables: {
+      ...
+    },
+    update: (store, { data }) => {
+      if(!data) {
+        return null;
+      }
+      if(data.emailSignIn.user) {
+        /**
+         *  캐시의 데이터를 작서할때는 항상
+         *  객체의 필드를 꼭 맞춰서 적어주도록 해야됨.
+         */
+        store.writeQuery({
+          query: GetMyProfileDocument,
+          data: {
+            __typename: "Query",
+            getMyProfile: {
+              ok: true,
+              error: '', // 로그아웃시, error가 존재하므로 ''로 빈값을 채워주도록 할 것(undefined는 )
+              ueser: data.emailSignIn.user,
+            }
+          }
+        });
+      }
+    }
+  });
+
+  ```
+  </p>
+  </details>
+
+  <details>
+  <summary>logout</summary>
+  <p>
+
+  ```ts
+  const [logout, { client }] = useLogoutMutation();
+  
+  return (
+    <div>
+      <button onClick={ async () => {
+        await logout();
+        setAccessToken('');
+        client?.resetStore();
+      }}>로그아웃</button>
+    </div>
+  )
+  ```
+  </p>
+  </details>
+
+  <details>
   <summary>apollo-link-token-refresh</summary>
   <p>
+  
   ```ts
 
   ```
